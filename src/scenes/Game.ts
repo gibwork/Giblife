@@ -18,11 +18,20 @@ interface Task {
     requiredLevel?: number;
 }
 
+interface ActiveTask {
+    title: string;
+    reward: number;
+    progress: number;
+    progressBar: Phaser.GameObjects.Graphics;
+    progressText: Phaser.GameObjects.Text;
+}
+
 export class Game extends Scene {
     private playerStats: PlayerStats;
     private taskBoard!: Phaser.GameObjects.Container;
     private statsText!: Phaser.GameObjects.Text;
     private tasks: Task[] = [];
+    private activeTasks: ActiveTask[] = [];
     private taskTimers: Phaser.Time.TimerEvent[] = [];
     private nextTaskBar!: Phaser.GameObjects.Graphics;
     private nextTaskText!: Phaser.GameObjects.Text;
@@ -268,20 +277,90 @@ export class Game extends Scene {
         // Deduct energy
         this.playerStats.energy -= 20;
         
-        // Remove the task immediately
+        // Remove the task from available tasks
         this.tasks = this.tasks.filter(t => t.title !== title);
         this.updateTaskBoard();
+
+        // Create progress bar for the active task
+        const progressBar = this.add.graphics();
+        const progressText = this.add.text(20, 400 + (this.activeTasks.length * 60), `${title}`, {
+            font: '14px Arial',
+            color: '#ffffff'
+        });
+
+        // Add to active tasks
+        this.activeTasks.push({
+            title,
+            reward,
+            progress: 0,
+            progressBar,
+            progressText
+        });
+
+        // Update progress bar
+        this.updateTaskProgress(title, 0);
+
+        // Simulate task completion over 3 seconds
+        const duration = 3000;
+        const interval = 100;
+        const steps = duration / interval;
+        const progressPerStep = 100 / steps;
+
+        let currentStep = 0;
+        const timer = this.time.addEvent({
+            delay: interval,
+            callback: () => {
+                currentStep++;
+                const progress = Math.min(currentStep * progressPerStep, 100);
+                this.updateTaskProgress(title, progress);
+
+                if (progress >= 100) {
+                    // Task completed
+                    this.completeTask(title);
+                    timer.remove();
+                }
+            },
+            callbackScope: this,
+            repeat: steps - 1
+        });
+    }
+
+    private updateTaskProgress(title: string, progress: number): void {
+        const task = this.activeTasks.find(t => t.title === title);
+        if (!task) return;
+
+        task.progress = progress;
         
+        // Update progress bar
+        task.progressBar.clear();
+        task.progressBar.fillStyle(0x222222, 1);
+        task.progressBar.fillRect(20, 420 + (this.activeTasks.indexOf(task) * 60), 200, 20);
+        task.progressBar.fillStyle(0x00ff00, 1);
+        task.progressBar.fillRect(20, 420 + (this.activeTasks.indexOf(task) * 60), 200 * (progress / 100), 20);
+
+        // Update progress text
+        task.progressText.setText(`${title} - ${Math.floor(progress)}%`);
+    }
+
+    private completeTask(title: string): void {
+        const task = this.activeTasks.find(t => t.title === title);
+        if (!task) return;
+
+        // Add reward to work balance
+        this.playerStats.work += task.reward;
+        this.updateStatsDisplay();
+
+        // Remove progress bar and text
+        task.progressBar.destroy();
+        task.progressText.destroy();
+
+        // Remove from active tasks
+        this.activeTasks = this.activeTasks.filter(t => t.title !== title);
+
         // If we were at max tasks, restart the timer
         if (this.tasks.length === 3) {
             this.nextTaskTime = this.nextTaskTotal;
         }
-        
-        // Simulate task completion after 3 seconds
-        this.time.delayedCall(3000, () => {
-            this.playerStats.work += reward;
-            this.updateStatsDisplay();
-        });
     }
 
     update(time: number, delta: number): void {
