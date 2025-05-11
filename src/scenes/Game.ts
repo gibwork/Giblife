@@ -109,7 +109,7 @@ export class Game extends Scene {
 
     private createNextTaskBar(): void {
         // Create loading bar background
-        const barBg = this.add.rectangle(1000, 50, 200, 20, 0x222222)
+       this.add.rectangle(1000, 50, 200, 20, 0x222222)
             .setOrigin(0, 0.5);
         
         // Create loading bar
@@ -250,7 +250,7 @@ export class Game extends Scene {
 
     private createUIButtons(): void {
         // Store button
-        const storeButton = this.add.image(100, 600, 'store-button')
+        this.add.image(100, 600, 'store-button')
             .setInteractive()
             .setScale(0.15)
             .on('pointerdown', () => {
@@ -259,7 +259,7 @@ export class Game extends Scene {
             });
 
         // Skills button
-        const skillsButton = this.add.image(250, 600, 'skills-button')
+        this.add.image(250, 600, 'skills-button')
             .setInteractive()
             .setScale(0.15)
             .on('pointerdown', () => {
@@ -363,7 +363,7 @@ export class Game extends Scene {
         }
     }
 
-    update(time: number, delta: number): void {
+    update(_: number, delta: number): void {
         // Update next task timer only if we have less than 4 tasks
         if (this.tasks.length < 4 && this.nextTaskTime > 0) {
             this.nextTaskTime -= delta;
