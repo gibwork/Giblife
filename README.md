@@ -1,61 +1,54 @@
-# GibLife - Web3 Freelancer Simulator
+# React + TypeScript + Vite
 
-A single-player simulation game where you take on the role of a struggling Web3 freelancer. Start with a broken-down house, an old computer, and zero skills. Complete tasks, earn Work currency, and improve your life!
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Project Idea
+Currently, two official plugins are available:
 
-GibLife is a unique simulation game that puts you in the shoes of a Web3 freelancer trying to make it in the digital world. The game combines elements of resource management, skill development, and strategic decision-making.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-### Core Gameplay Elements
+## Expanding the ESLint configuration
 
-- **Freelance Work**: Take on various Web3-related tasks through the GibWork platform
-- **Resource Management**: Balance your energy, food, and Work currency
-- **Skill Development**: Improve your abilities in:
-  - Smart Contract Development
-  - Web3 Design
-  - Blockchain Marketing
-  - Community Management
-- **Life Simulation**: Upgrade your living conditions, equipment, and overall lifestyle
-- **Progression System**: Start from nothing and work your way up to becoming a successful Web3 freelancer
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Contributing
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
+```
 
-We welcome contributions from the community! Here's how you can help:
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-### Getting Started
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-1. Fork the repository
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/your-username/giblife.git
-   ```
-3. Create a new branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-### Development Setup
-
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Start the development server:
-   ```bash
-   npm start
-   ```
-
-## Tech Stack
-
-- Phaser 3 - Game engine
-- TypeScript - Programming language
-- Webpack - Build tool
-
-## Project Structure
-
-- `src/` - Source code
-  - `scenes/` - Game scenes
-  - `assets/` - Game assets
-- `dist/` - Built files
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
+```

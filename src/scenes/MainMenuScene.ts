@@ -1,6 +1,16 @@
 import { Scene } from 'phaser';
 
+interface WalletConnectedEvent extends CustomEvent {
+    detail: {
+        address: string;
+    };
+}
+
 export class MainMenuScene extends Scene {
+    private startButton!: Phaser.GameObjects.Text;
+    private walletText!: Phaser.GameObjects.Text;
+    private isWalletConnected: boolean = false;
+
     constructor() {
         super({ key: 'MainMenuScene' });
     }
@@ -23,8 +33,16 @@ export class MainMenuScene extends Scene {
         });
         subtitle.setOrigin(0.5);
 
-        // Start button
-        const startButton = this.add.text(width / 2, height / 2, 'Start Game', {
+        // Wallet address text (initially hidden)
+        this.walletText = this.add.text(width / 2, height / 2 - 50, '', {
+            font: '16px Arial',
+            color: '#ffffff'
+        });
+        this.walletText.setOrigin(0.5);
+        this.walletText.setVisible(false);
+
+        // Start/Connect button
+        this.startButton = this.add.text(width / 2, height / 2, 'Connect Wallet', {
             font: '32px Arial',
             color: '#ffffff',
             backgroundColor: '#444444',
@@ -35,20 +53,46 @@ export class MainMenuScene extends Scene {
                 bottom: 10
             }
         });
-        startButton.setOrigin(0.5);
-        startButton.setInteractive();
+        this.startButton.setOrigin(0.5);
+        this.startButton.setInteractive();
 
         // Button hover effects
-        startButton.on('pointerover', () => {
-            startButton.setStyle({ backgroundColor: '#666666' });
+        this.startButton.on('pointerover', () => {
+            this.startButton.setStyle({ backgroundColor: '#666666' });
         });
 
-        startButton.on('pointerout', () => {
-            startButton.setStyle({ backgroundColor: '#444444' });
+        this.startButton.on('pointerout', () => {
+            this.startButton.setStyle({ backgroundColor: '#444444' });
         });
 
-        startButton.on('pointerdown', () => {
-            this.scene.start('Game');
+        this.startButton.on('pointerdown', () => {
+            if (this.isWalletConnected) {
+                this.scene.start('Game');
+            } else {
+                // Trigger wallet connection
+                const walletButton = document.querySelector('.wallet-adapter-button');
+                if (walletButton) {
+                    (walletButton as HTMLElement).click();
+                }
+            }
+        });
+
+        // Listen for wallet connection changes
+        window.addEventListener('walletConnected', ((event: WalletConnectedEvent) => {
+            this.isWalletConnected = true;
+            this.startButton.setText('Start Game');
+            
+            const walletAddress = event.detail.address;
+            // Show shortened wallet address
+            const shortAddress = `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`;
+            this.walletText.setText(`Connected: ${shortAddress}`);
+            this.walletText.setVisible(true);
+        }) as EventListener);
+
+        window.addEventListener('walletDisconnected', () => {
+            this.isWalletConnected = false;
+            this.startButton.setText('Connect Wallet');
+            this.walletText.setVisible(false);
         });
     }
 } 
